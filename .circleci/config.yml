@@ -14,7 +14,7 @@ jobs:
             cd frontend 
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
-            sudo webpack --mode development --progress --colors
+            sudo webpack --mode development --progress
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
