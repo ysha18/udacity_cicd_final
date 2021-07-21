@@ -11,6 +11,7 @@ jobs:
       - run:
           name: Build front-end
           command: |
+            npm install --save-dev webpack
             webpack --mode development --progress --colors
       - save_cache:
           paths: [frontend/node_modules]
@@ -26,6 +27,7 @@ jobs:
       - run:
           name: Back-end build
           command: |
+             npm install typescript --save-dev
              tsc
       - save_cache:
           paths: [backend/node_modules]
