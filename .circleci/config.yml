@@ -35,11 +35,43 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+  
+  test-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-test]
+      - run:
+          name: Test frontend
+          command: |
+            cd frontend
+            sudo npm install --global jest
+            sudo jest
+      # - save_cache:
+      #     paths: [frontend/node_modules]
+      #     key: frontend-test
 
+  test-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-test]
+      - run:
+          name: Test backend
+          command: |
+            cd backend
+            sudo npm install --global jest
+            sudo jest --runInBand
 
 workflows:
   default:
     jobs:
       - build-frontend
       - build-backend
+      - test-frontend
+      - test-backend
      
