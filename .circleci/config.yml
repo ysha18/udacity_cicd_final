@@ -48,6 +48,7 @@ jobs:
           name: Scan for vulnerabilities for frontend
           command: |
             cd frontend
+            npm i
             sudo npm audit --audit-level=critical
 
 # BACKEND
@@ -96,6 +97,7 @@ jobs:
           command: |
             cd backend
             sudo npm audit --audit-level=critical
+            sudo npm audit fix --audit-level=critical --force
   
 workflows:
   default:
