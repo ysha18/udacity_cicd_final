@@ -29,29 +29,26 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [test-frontend]
+          keys: [frontend-build]
       - run:
           name: Test frontend
           command: |
             cd frontend
-            sudo npm i
             sudo npm install --global jest
             sudo jest
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: test-frontend
 
   scan-frontend:
     docker:
-      - image: circleci/node:13.8.
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Scan for vulnerabilities for frontend
           command: |
             cd frontend
-            sudo npm i
-            npm audit --audit-level=critical
+            sudo npm audit --audit-level=critical
 
 # BACKEND
 
@@ -79,29 +76,26 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [test-backend]
+          keys: [backend-build]
       - run:
           name: Test backend
           command: |
             cd backend
-            sudo npm i
             sudo npm install --global jest
             sudo jest --runInBand
-      - save_cache:
-          paths: [backend/node_modules]
-          key: test-backend
 
   scan-backend:
     docker:
-      - image: circleci/node:13.8.
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Scan for vulnerabilities for backend
           command: |
             cd backend
-            sudo npm i
-            npm audit --audit-level=critical
+            sudo npm audit --audit-level=critical
   
 workflows:
   default:
