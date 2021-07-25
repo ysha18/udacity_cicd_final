@@ -16,9 +16,27 @@ jobs:
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
             sudo webpack --mode development --progress
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build
+      # - save_cache:
+      #     paths: [frontend/node_modules]
+      #     key: frontend-build
+
+  test-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-test]
+      - run:
+          name: Test frontend
+          command: |
+            cd frontend
+            sudo npm i
+            sudo npm install --global jest
+            sudo jest
+      # - save_cache:
+      #     paths: [frontend/node_modules]
+      #     key: frontend-test
 
   build-backend:
     docker:
@@ -34,9 +52,24 @@ jobs:
              sudo npm i
              sudo npm install typescript -g
              sudo tsc
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
+      # - save_cache:
+      #     paths: [backend/node_modules]
+      #     key: backend-build
+
+  test-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      # - restore_cache:
+      #     keys: [backend-test]
+      - run:
+          name: Test backend
+          command: |
+            cd backend
+            sudo npm i
+            sudo npm install --global jest
+            sudo jest --runInBand
   
 
 workflows:
@@ -44,4 +77,10 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
+      - test-frontend:
+          requires:
+            - build-frontend
+      - test-backend:
+          requires:
+            - build-backend
      
