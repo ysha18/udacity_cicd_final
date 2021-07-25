@@ -18,24 +18,13 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
+            sudo npm install --global webpack
+            sudo npm install --global webpack-cli
             sudo webpack --mode development --progress
       - slack/notify:
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "plain_text",
-                      "text": "Failure during frontend build",
-                      "emoji": true
-                    }
-                  ]
-                }
-              ]
-            }
           event: fail
+          mentions: '@shayunited21'
+          template: basic_fail_1
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build     
@@ -53,6 +42,10 @@ jobs:
             cd frontend
             sudo npm install --global jest
             sudo jest
+      - slack/notify:
+          event: fail
+          mentions: '@shayunited21'
+          template: basic_fail_1
 
   scan-frontend:
     docker:
@@ -67,6 +60,10 @@ jobs:
             cd frontend
             npm i
             sudo npm audit fix --audit-level=critical --force
+      - slack/notify:
+          event: fail
+          mentions: '@shayunited21'
+          template: basic_fail_1
 
 # BACKEND
 
@@ -105,6 +102,10 @@ jobs:
             cd backend
             sudo npm install --global jest
             sudo jest --runInBand
+      - slack/notify:
+          event: fail
+          mentions: '@shayunited21'
+          template: basic_fail_1
 
   scan-backend:
     docker:
@@ -118,6 +119,10 @@ jobs:
           command: |
             cd backend
             sudo npm audit fix --audit-level=critical --force
+      - slack/notify:
+          event: fail
+          mentions: '@shayunited21'
+          template: basic_fail_1
   
 workflows:
   default:
