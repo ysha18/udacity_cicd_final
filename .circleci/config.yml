@@ -166,7 +166,7 @@ jobs:
           root: /tmp/workspace
           paths:
             - project/.circleci/ansible/inventory.txt
-      - destroy_environment:
+      - destroy_environment
         when: on_fail
 
   configure-infrastructure:
@@ -189,7 +189,7 @@ jobs:
           command: |
             sudo ansible-playbook -i /tmp/workspace/inventory.txt ~/.circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure     
-      - destroy_environment:
+      - destroy_environment
         when: on_fail
 
   
