@@ -183,11 +183,11 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible
+            sudo apk add --update ansible
       - run:
           name: Configure server
           command: |
-            ansible-playbook -i inventory.txt playbook.yml
+            sudo ansible-playbook -i /tmp/workspace/inventory.txt ~/.circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure     
       - destroy_environment:
           when: on_fail 
@@ -210,5 +210,11 @@ workflows:
       - scan-backend:
           requires:
             - test-backend
+      - deploy-infrastructure:
+          requires:
+            - scan-backend
+      - configure-infrastructure:
+          requires:
+            - deploy-infrastructure
         
      
