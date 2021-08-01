@@ -3,6 +3,15 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.4.2
 
+commands:
+  destroy_environment:
+    steps:
+      - run:
+          name: Destroy env
+          command: |
+            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
+            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+
 jobs:
 
  # FRONTEND    
@@ -123,6 +132,45 @@ jobs:
           event: fail
           mentions: '@shayunited21'
           template: basic_fail_1
+
+# INFRA
+
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=project-9871051234349703 \
+              --stack-name backend-stack-9871051234349703 \
+              --parameter-overrides ID=9871051234349703  
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              #--tags project=project-9871051234349703 \
+              # --stack-name "frontend-stack-9871051234349703\
+              # --parameter-overrides ID="9871051234349703
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text >> .circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure  
+      - destroy_environment:
+          when: on_fail  
+
+
   
 workflows:
   default:
