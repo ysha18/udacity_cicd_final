@@ -15,9 +15,9 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: 404.html
-    Tags:
-        - Key: Name
-          Value: !Sub frontend-${ID}
+      Tags:
+          - Key: Name
+            Value: !Sub frontend-${ID}
   
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
