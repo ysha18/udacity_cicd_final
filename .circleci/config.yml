@@ -155,7 +155,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=project-9871051234349703 \
               --stack-name frontend-stack-9871051234349703 \
-              --parameter-overrides ID="9871051234349703
+              --parameter-overrides ID=9871051234349703
       - run:
           name: Add back-end ip to ansible inventory
           command: |
