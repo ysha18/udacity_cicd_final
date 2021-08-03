@@ -137,7 +137,7 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: amazon/aws-cli
+      - image: garland/aws-cli-docker
     steps:
       - checkout
       - run:
