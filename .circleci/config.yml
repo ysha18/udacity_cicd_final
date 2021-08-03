@@ -154,7 +154,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=project-9871051234349703 \
-              --stack-name "frontend-stack-9871051234349703 \
+              --stack-name frontend-stack-9871051234349703 \
               --parameter-overrides ID="9871051234349703
       - run:
           name: Add back-end ip to ansible inventory
@@ -169,8 +169,8 @@ jobs:
       - run:
           name: destroy env
           command: |
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
 
   configure-infrastructure:
@@ -196,8 +196,8 @@ jobs:
       - run:
           name: destroy env
           command: |
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
 
   
