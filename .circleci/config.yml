@@ -170,7 +170,7 @@ jobs:
           name: destroy env
           command: |
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
+            # aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
 
   configure-infrastructure:
