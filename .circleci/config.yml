@@ -163,7 +163,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: /tmp
+          root: /tmp/
           paths:
             - project/.circleci/ansible/inventory.txt
       - run:
@@ -183,7 +183,7 @@ jobs:
             - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
       # attach workspace
       - attach_workspace:
-          at: /tmp/workspace
+          at: /tmp/
       - run:
           name: Install dependencies
           command: |
