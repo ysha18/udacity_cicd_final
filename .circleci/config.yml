@@ -143,6 +143,7 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists
           command: |
+            mkdir /tmp/workspace
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=project-9871051234349703 \
@@ -163,7 +164,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: /tmp/
+          root: /tmp/workspace
           paths:
             - project/.circleci/ansible/inventory.txt
       - run:
@@ -183,7 +184,7 @@ jobs:
             - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
       # attach workspace
       - attach_workspace:
-          at: /tmp/
+          at: /tmp/workspace
       - run:
           name: Install dependencies
           command: |
