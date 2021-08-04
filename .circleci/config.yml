@@ -164,7 +164,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: ~/.circleci/ansible/
+          root: .circleci/ansible/
           paths:
             - inventory.txt
       - run:
