@@ -188,7 +188,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo apk add --update ansible
+            apk update
+            apk upgrade
+            apk add --update ansible
       - run:
           name: Configure server
           command: |
@@ -197,6 +199,7 @@ jobs:
       - run:
           name: destroy env
           command: |
+            apk add curl
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             sudo unzip awscliv2.zip
             sudo ./aws/install
