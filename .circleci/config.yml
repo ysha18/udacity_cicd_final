@@ -194,7 +194,7 @@ jobs:
       - run:
           name: Configure server
           command: |
-            ansible-playbook -i /tmp/inventory.txt /tmp/configure-server.yml
+            ansible-playbook -i /tmp/inventory.txt .circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure     
       - run:
           name: destroy env
@@ -203,8 +203,8 @@ jobs:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             ./aws/install
-            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
+            /usr/local/bin/aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+            /usr/local/bin/aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
 
   
