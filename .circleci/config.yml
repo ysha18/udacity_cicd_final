@@ -176,7 +176,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: ansible/ansible-runner
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
@@ -197,6 +197,9 @@ jobs:
       - run:
           name: destroy env
           command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            sudo unzip awscliv2.zip
+            sudo ./aws/install
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
