@@ -164,9 +164,9 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: /tmp/
+          root: ~/.circleci/ansible/
           paths:
-            - ~/.circleci//ansible/inventory.txt
+            - inventory.txt
       - run:
           name: destroy env
           command: |
@@ -192,7 +192,7 @@ jobs:
       - run:
           name: Configure server
           command: |
-            sudo ansible-playbook -i /tmp/inventory.txt ~/.circleci/ansible/configure-server.yml
+            sudo ansible-playbook -i /tmp/inventory.txt /tmp/configure-server.yml
       # Here's where you will add some code to rollback on failure     
       - run:
           name: destroy env
