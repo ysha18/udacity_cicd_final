@@ -194,16 +194,18 @@ jobs:
       - run:
           name: Configure server
           command: |
-            ansible-playbook  .circleci/ansible/configure-server/configure-server.yml -i /tmp/inventory.txt
+            ansible-playbook .circleci/ansible/configure-server/configure-server.yml -i /tmp/inventory.txt
       # Here's where you will add some code to rollback on failure     
       - run:
           name: destroy env
           command: |
+            set -ex
             apk add curl
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
-            cd awscliv2/aws/
-            install
+            pwd
+            ls
+            awscliv2/aws/install
             /usr/local/bin/aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
             /usr/local/bin/aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
@@ -212,23 +214,23 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires:
-            - build-frontend
-      - test-backend:
-          requires:
-            - build-backend
-      - scan-frontend:
-          requires:
-            - test-frontend
-      - scan-backend:
-          requires:
-            - test-backend
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires:
+      #       - build-frontend
+      # - test-backend:
+      #     requires:
+      #       - build-backend
+      # - scan-frontend:
+      #     requires:
+      #       - test-frontend
+      # - scan-backend:
+      #     requires:
+      #       - test-backend
       - deploy-infrastructure:
-          requires:
-            - scan-backend
+          # requires:
+          #   - scan-backend
       - configure-infrastructure:
           requires:
             - deploy-infrastructure

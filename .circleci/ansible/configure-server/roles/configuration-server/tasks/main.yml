@@ -1,6 +1,9 @@
 ---
-- name: "set up env variables"
+
+- name: "update apt packages."
   become: yes
+  apt:
+    update_cache: yes
   environment:
     ENVIRONMENT: production
     TYPEORM_CONNECTION: postgres
@@ -10,11 +13,6 @@
     TYPEORM_USERNAME: postgres
     TYPEORM_PASSWORD: udapeople123
     TYPEORM_DATABASE: udapeople-prod
-
-- name: "update apt packages."
-  become: yes
-  apt:
-    update_cache: yes
   
 - name: "upgrade packages"
   become: yes
