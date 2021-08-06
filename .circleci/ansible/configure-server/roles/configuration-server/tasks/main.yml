@@ -2,6 +2,7 @@
 
 - name: "update apt packages."
   become: yes
+  command: echo "task 5 done"
   apt:
     update_cache: yes
   environment:
@@ -18,11 +19,13 @@
   become: yes
   apt:
     upgrade: yes
+  command: echo "task 6 done"
 
 - name: remove dependencies that are no longer required
   become: yes
   apt:
     autoremove: yes
+  command: echo "task 7 done"
 
 - name: "install dependencies."
   become: yes
