@@ -205,10 +205,9 @@ jobs:
             unzip awscliv2.zip
             pwd
             ls
-            cd aws
-            install
-            /usr/local/bin/aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
-            /usr/local/bin/aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
+           
+            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
 
   

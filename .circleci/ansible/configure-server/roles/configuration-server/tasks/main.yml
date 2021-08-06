@@ -2,9 +2,10 @@
 
 - name: "update apt packages."
   become: yes
-  command: echo "task 5 done"
-  apt:
-    update_cache: yes
+  command: |
+    apt update_cache
+    echo "task 5 done"
+    
   environment:
     ENVIRONMENT: production
     TYPEORM_CONNECTION: postgres
@@ -17,15 +18,14 @@
   
 - name: "upgrade packages"
   become: yes
-  apt:
-    upgrade: yes
-  command: echo "task 6 done"
+  command: |
+    apt upgrade
+    echo "task 6 done"
 
 - name: remove dependencies that are no longer required
   become: yes
   apt:
     autoremove: yes
-  command: echo "task 7 done"
 
 - name: "install dependencies."
   become: yes
