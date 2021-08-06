@@ -228,7 +228,7 @@ workflows:
       # - scan-backend:
       #     requires:
       #       - test-backend
-      - deploy-infrastructure:
+      - deploy-infrastructure
           # requires:
           #   - scan-backend
       - configure-infrastructure:
