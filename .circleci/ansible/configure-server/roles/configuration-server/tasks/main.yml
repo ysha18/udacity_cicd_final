@@ -4,7 +4,7 @@
   become: yes
   command: |
     apt update_cache
-    echo "task 5 done" >> esy
+    echo task 5 done >> esy
     
   environment:
     ENVIRONMENT: production
@@ -20,12 +20,14 @@
   become: yes
   command: |
     apt upgrade
-    echo "task 6 done" >> esy
+    echo task 6 done >> esy
 
 - name: remove dependencies that are no longer required
   become: yes
-  apt:
-    autoremove: yes
+   command: |
+    apt autoremove
+    echo task 7 done >> esy
+  
 
 - name: "install dependencies."
   become: yes
