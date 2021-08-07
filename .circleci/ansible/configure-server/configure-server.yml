@@ -20,12 +20,10 @@
         touch esy
         sudo apt update
         echo task 1 done >> esy
-        sudo apt install software-properties-common
-        echo task 2 done >> esy
-        sudo add-apt-repository ppa:deadsnakes/ppa
-        echo task 3 done >> esy
         sudo apt install python3.8
         echo task 4 done >> esy
+        cat esy
+        python3.8 --version
 
   roles:
     - configuration-server
