@@ -3,7 +3,6 @@
 - name: "update apt packages."
   become: yes
   command: |
-    apt update_cache
     echo task 5 done >> esy
     
   environment:
