@@ -19,7 +19,6 @@
       shell: |
         set -ex
         touch esy
-        python --version >> esy
         sudo apt update
         echo task 1 done >> esy
         sudo apt install python3.8
