@@ -19,14 +19,11 @@
   become: yes
   command: |
     apt upgrade
-    echo task 6 done >> esy
 
 - name: remove dependencies that are no longer required
   become: yes
   command: |
     apt autoremove
-    echo task 7 done >> esy
-  
 
 - name: "install dependencies."
   become: yes
