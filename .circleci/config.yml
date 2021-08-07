@@ -202,10 +202,11 @@ jobs:
             set -ex
             apk add curl
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            pwd
-            ls
-           
+            mkdir aws_cli
+            unzip awscliv2.zip -d aws_cli
+            cd aws_cli
+            ls -l
+            install
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
