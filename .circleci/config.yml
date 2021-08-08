@@ -212,8 +212,10 @@ jobs:
             touch migration-log
             echo ${CIRCLE_WORKFLOW_ID}
             cd backend
-            npm run build
-            ts-node -r dotenv/config node_modules/.bin/typeorm migration:run > migration_log
+            sudo npm i
+            sudo npm install typescript -g
+            sudo npm run build
+            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:run > migration_log
 
       - run:
           name: Send migration results to memstash
