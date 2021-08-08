@@ -209,6 +209,7 @@ jobs:
           command: |
             touch migration-log
             echo ${CIRCLE_WORKFLOW_ID}
+            cd backend
             npm run build
             ts-node -r dotenv/config node_modules/.bin/typeorm migration:run > migration_log
 
