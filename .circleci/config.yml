@@ -4,12 +4,12 @@ orbs:
   slack: circleci/slack@4.4.2
 
 commands:
-    notify_on_slack:
-      steps:
-        - slack/notify:
-            event: fail
-            mentions: '@shayunited21'
-            template: basic_fail_1
+  notify_on_slack:
+    steps:
+      - slack/notify:
+          event: fail
+          mentions: '@shayunited21'
+          template: basic_fail_1
 #   destroy_environment:
 #     steps:
 #       - run:
@@ -219,7 +219,7 @@ jobs:
             if [-s $SUCCESS_MIGR]
             then
               curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
-        - notify_on_slack
+      - notify_on_slack
       # Here's where you will add some code to rollback on failure   
 
   deploy-frontend:
