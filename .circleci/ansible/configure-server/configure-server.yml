@@ -17,13 +17,9 @@
         timeout: 300
 
     - name: "install python for Ansible."
-      # Your code here
       shell: |
         set -ex
-        touch esy
         sudo apt install python3.8
-        echo task 4 done >> esy
-        python3 --version >> esy
        
 
   roles:

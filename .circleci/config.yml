@@ -3,7 +3,13 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.4.2
 
-# commands:
+commands:
+    notify_on_slack:
+      steps:
+        - slack/notify:
+            event: fail
+            mentions: '@shayunited21'
+            template: basic_fail_1
 #   destroy_environment:
 #     steps:
 #       - run:
@@ -30,13 +36,10 @@ jobs:
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
             sudo webpack --mode development --progress
-      - slack/notify:
-          event: fail
-          mentions: '@shayunited21'
-          template: basic_fail_1
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build     
+      - notify_on_slack
 
   test-frontend:
     docker:
@@ -51,10 +54,7 @@ jobs:
             cd frontend
             sudo npm install --global jest
             sudo jest
-      - slack/notify:
-          event: fail
-          mentions: '@shayunited21'
-          template: basic_fail_1
+      - notify_on_slack
 
   scan-frontend:
     docker:
@@ -69,10 +69,7 @@ jobs:
             cd frontend
             npm i
             sudo npm audit fix --audit-level=critical --force
-      - slack/notify:
-          event: fail
-          mentions: '@shayunited21'
-          template: basic_fail_1
+      - notify_on_slack
 
 # BACKEND
 
@@ -90,13 +87,10 @@ jobs:
              sudo npm i
              sudo npm install typescript -g
              sudo tsc
-      - slack/notify:
-          event: fail
-          mentions: '@shayunited21'
-          template: basic_fail_1
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+      - notify_on_slack
 
   test-backend:
     docker:
@@ -111,10 +105,7 @@ jobs:
             cd backend
             sudo npm install --global jest
             sudo jest --runInBand
-      - slack/notify:
-          event: fail
-          mentions: '@shayunited21'
-          template: basic_fail_1
+      - notify_on_slack
 
   scan-backend:
     docker:
@@ -128,10 +119,7 @@ jobs:
           command: |
             cd backend
             sudo npm audit fix --audit-level=critical --force
-      - slack/notify:
-          event: fail
-          mentions: '@shayunited21'
-          template: basic_fail_1
+      - notify_on_slack
 
 # INFRA
 
@@ -167,12 +155,15 @@ jobs:
           root: .circleci/ansible/
           paths:
             - inventory.txt
+      - notify_on_slack
       - run:
           name: destroy env
           command: |
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
           when: on_fail
+
+# DEPLOY PHASE
 
   configure-infrastructure:
     docker:
@@ -195,6 +186,7 @@ jobs:
           name: Configure server
           command: |
             ansible-playbook .circleci/ansible/configure-server/configure-server.yml -i /tmp/inventory.txt
+      - notify_on_slack
       # Here's where you will add some code to rollback on failure     
       # - run:
       #     name: destroy env
@@ -207,30 +199,116 @@ jobs:
       #       /usr/local/bin/aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
       #       /usr/local/bin/aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
       #     when: on_fail
+  run-migrations:
+    docker:
+      - image: cimg/node:16.6.0
+    steps:
+      - checkout
+      - run:
+          name: Run migrations
+          command: |
+            touch migration-log
+            echo ${CIRCLE_WORKFLOW_ID}
+            npm run build
+            ts-node -r dotenv/config node_modules/.bin/typeorm migration:run > migration_log
+
+      - run:
+          name: Send migration results to memstash
+          command: |
+            SUCCESS_MIGR=$(cat migration_log | grep "has been executed successfully")
+            if [-s $SUCCESS_MIGR]
+            then
+              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+        - notify_on_slack
+      # Here's where you will add some code to rollback on failure   
+
+  deploy-frontend:
+    docker:
+      - image: garland/aws-cli-docker
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            cd frontend
+            sudo npm install --global webpack
+            sudo npm install --global webpack-cli
+            sudo webpack --mode development --progress
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: Get backend url
+          command: |
+            BACKEND_IP=$(cat /tmp/inventory.txt ! sed -n '2 p')
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Deploy frontend objects
+          command: |
+             npm run build
+             aws s3 cp ~/frontend/dist s3://myb27-udapeople-9871051234349703/ 
+      - notify_on_slack
+      # Here's where you will add some code to rollback on failure      
+
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - add_ssh_keys:
+          fingerprints:
+            - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: Install dependencies
+          command: |
+            pwd
+            ls -l
+            apk update
+            apk upgrade
+            apk add --update ansible
+      - run:
+          name: Deploy backend
+          command: |
+            ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
+      - notify_on_slack
+      # Here's where you will add some code to rollback on failure  
 
   
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires:
-      #       - build-frontend
-      # - test-backend:
-      #     requires:
-      #       - build-backend
-      # - scan-frontend:
-      #     requires:
-      #       - test-frontend
-      # - scan-backend:
-      #     requires:
-      #       - test-backend
-      - deploy-infrastructure
-          # requires:
-          #   - scan-backend
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # filters:
+          #   branches:
+          #     only: [test-feature-branch]
       - configure-infrastructure:
-          requires:
-            - deploy-infrastructure
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudfront-update]
         
      

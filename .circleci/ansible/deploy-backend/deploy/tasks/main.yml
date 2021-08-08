@@ -1,0 +1,5 @@
+- name: "Copy backend files"
+  become: yes
+  copy:
+    src: ~/backend/dist
+    dest: $HOME

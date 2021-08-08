@@ -1,9 +1,9 @@
 ---
 
-- name: "update apt packages."
+- name: "set environment variables."
   become: yes
   command: |
-    echo task 5 done >> esy
+    pwd
     
   environment:
     ENVIRONMENT: production
