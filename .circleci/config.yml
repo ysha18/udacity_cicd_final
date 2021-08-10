@@ -193,6 +193,14 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
+          name: Install AWS CLI dependencies
+          working_directory: /tmp
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
           name: Run migrations
           working_directory: ./backend
           command: |
@@ -209,6 +217,7 @@ jobs:
             if grep -q "has been executed successfully" migration-log
             then
               curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+            fi
       - notify_on_slack
       # Here's where you will add some code to rollback on failure   
       - destroy_environment
@@ -254,6 +263,14 @@ jobs:
             - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
       - attach_workspace:
           at: /tmp/
+      - run:
+          name: Install AWS CLI dependencies
+          working_directory: /tmp
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - run:
           name: Install dependencies
           command: |
