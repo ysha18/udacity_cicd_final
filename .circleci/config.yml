@@ -268,7 +268,7 @@ jobs:
             ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
       # Here's where you will add some code to rollback on failure  
-      - destroy-environment:
+      - destroy_environment
 
   
 workflows:
