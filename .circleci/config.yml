@@ -10,13 +10,14 @@ commands:
           event: fail
           mentions: '@shayunited21'
           template: basic_fail_1
-#   destroy_environment:
-#     steps:
-#       - run:
-#           name: Destroy env
-#           command: |
-#             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
-#             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+  destroy_environment:
+    steps:
+      - run:
+          name: Destroy env
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
+            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
 jobs:
 
@@ -156,12 +157,7 @@ jobs:
           paths:
             - inventory.txt
       - notify_on_slack
-      - run:
-          name: destroy env
-          command: |
-            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
-          when: on_fail
+      - destroy_environment
 
 # DEPLOY PHASE
 
@@ -188,17 +184,7 @@ jobs:
             ansible-playbook .circleci/ansible/configure-server/configure-server.yml -i /tmp/inventory.txt
       - notify_on_slack
       # Here's where you will add some code to rollback on failure     
-      # - run:
-      #     name: destroy env
-      #     command: |
-      #       set -ex
-      #       apk add curl
-      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      #       unzip awscliv2.zip
-      #       /usr/local/bin/aws --version
-      #       /usr/local/bin/aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
-      #       /usr/local/bin/aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
-      #     when: on_fail
+      - destroy_environment
   run-migrations:
     docker:
       - image: cimg/node:16.6.0
@@ -220,12 +206,12 @@ jobs:
           name: Send migration results to memstash
           command: |
             set -ex
-            SUCCESS_MIGR=$(cat migration_log | grep "has been executed successfully")
-            if [-s $SUCCESS_MIGR]
+            if grep -q "has been executed successfully" migration-log
             then
               curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
       - notify_on_slack
       # Here's where you will add some code to rollback on failure   
+      - destroy_environment
 
   deploy-frontend:
     docker:
@@ -254,6 +240,7 @@ jobs:
              aws s3 cp ~/frontend/dist s3://myb27-udapeople-9871051234349703/ 
       - notify_on_slack
       # Here's where you will add some code to rollback on failure      
+      - destroy_environment
 
   deploy-backend:
     docker:
@@ -281,6 +268,7 @@ jobs:
             ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
       # Here's where you will add some code to rollback on failure  
+      - destroy-environment:
 
   
 workflows:
