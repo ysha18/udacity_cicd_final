@@ -209,17 +209,25 @@ jobs:
       - run:
           name: Run migrations
           command: |
+            set -ex
             touch migration-log
             echo ${CIRCLE_WORKFLOW_ID}
             cd backend
             sudo npm i
             sudo npm install typescript ts-node -g
             sudo npm run build
+            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:create
+            npm run build
+            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:generate
+            npm run build
             sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:run > migration_log
+            sudo ts-node node_modules/typeorm/cli.js migration:run
+
 
       - run:
           name: Send migration results to memstash
           command: |
+            set -ex
             SUCCESS_MIGR=$(cat migration_log | grep "has been executed successfully")
             if [-s $SUCCESS_MIGR]
             then
