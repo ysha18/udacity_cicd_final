@@ -216,11 +216,11 @@ jobs:
             sudo npm i
             sudo npm install typescript ts-node -g
             sudo npm run build
-            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:create
+            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:create -n
             npm run build
-            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:generate
+            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:generate -n
             npm run build
-            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:run > migration_log
+            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:run -n > migration_log
             sudo ts-node node_modules/typeorm/cli.js migration:run
 
 
