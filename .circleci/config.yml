@@ -208,21 +208,13 @@ jobs:
           keys: [backend-build]
       - run:
           name: Run migrations
+          working_directory: ./backend
           command: |
             set -ex
             touch migration-log
             echo ${CIRCLE_WORKFLOW_ID}
-            cd backend
-            sudo npm i
-            sudo npm install typescript ts-node -g
-            sudo npm run build
-            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:create -n
-            npm run build
-            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:generate -n
-            npm run build
-            sudo ts-node -r dotenv/config node_modules/.bin/typeorm migration:run -n > migration_log
-            sudo ts-node node_modules/typeorm/cli.js migration:run
-
+            npm run migrations > migration-log
+            echo migration-log
 
       - run:
           name: Send migration results to memstash
