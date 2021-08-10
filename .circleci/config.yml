@@ -208,7 +208,7 @@ jobs:
             touch migration-log
             echo ${CIRCLE_WORKFLOW_ID}
             npm run migrations > migration-log
-            echo migration-log
+            cat migration-log
 
       - run:
           name: Send migration results to memstash
@@ -224,9 +224,17 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: garland/aws-cli-docker
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - run:
+          name: Install AWS CLI dependencies
+          working_directory: /tmp
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - run:
           name: Install dependencies
           command: |
@@ -253,7 +261,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
