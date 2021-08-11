@@ -149,9 +149,13 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances \
+            backend_ip=aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> .circleci/ansible/inventory.txt
+            --output text
+
+            cat $backend_ip >> .circleci/ansible/inventory.txt
+
+            curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data $backend_ip https://api.memstash.io/values/backend_id
       - persist_to_workspace:
           root: .circleci/ansible/
           paths:
@@ -184,6 +188,7 @@ jobs:
             ansible-playbook .circleci/ansible/configure-server/configure-server.yml -i /tmp/inventory.txt
       - notify_on_slack    
       - destroy_environment
+
   run-migrations:
     docker:
       - image: cimg/node:16.6.0
@@ -245,7 +250,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            BACKEND_IP=$(cat /tmp/inventory.txt ! sed -n '2 p')
+            export BACKEND_IP= export API_URL=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
       - run:
@@ -253,14 +258,14 @@ jobs:
           working_directory: ./frontend
           command: |
              npm run build
-             aws s3 cp ./dist s3://myb41-udapeople-9871051234349703/ 
+             aws s3 cp ./dist s3://myb42-udapeople-9871051234349703/ 
       - notify_on_slack
       # Here's where you will add some code to rollback on failure      
       - destroy_environment
 
   deploy-backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - restore_cache:
@@ -274,7 +279,6 @@ jobs:
           name: Install AWS CLI dependencies
           working_directory: ./backend
           command: |
-            sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
