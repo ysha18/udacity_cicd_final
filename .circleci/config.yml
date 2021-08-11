@@ -153,9 +153,9 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
 
-            cat $backend_ip >> .circleci/ansible/inventory.txt
+            echo "$backend_ip" >> .circleci/ansible/inventory.txt
 
-            curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data $backend_ip https://api.memstash.io/values/backend_id
+            curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "$backend_ip" https://api.memstash.io/values/backend_id
       - persist_to_workspace:
           root: .circleci/ansible/
           paths:
@@ -258,7 +258,7 @@ jobs:
           working_directory: ./frontend
           command: |
              npm run build
-             aws s3 cp ./dist s3://myb43-udapeople-9871051234349703/ 
+             aws s3 cp ./dist s3://myb44-udapeople-9871051234349703/ 
       - notify_on_slack
       # Here's where you will add some code to rollback on failure      
       - destroy_environment
