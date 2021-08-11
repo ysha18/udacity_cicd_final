@@ -149,9 +149,9 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            backend_ip=aws ec2 describe-instances \
+            backend_ip=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text
+            --output text)
 
             cat $backend_ip >> .circleci/ansible/inventory.txt
 
@@ -250,7 +250,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP= export API_URL=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
+            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
       - run:
@@ -258,7 +258,7 @@ jobs:
           working_directory: ./frontend
           command: |
              npm run build
-             aws s3 cp ./dist s3://myb42-udapeople-9871051234349703/ 
+             aws s3 cp ./dist s3://myb43-udapeople-9871051234349703/ 
       - notify_on_slack
       # Here's where you will add some code to rollback on failure      
       - destroy_environment
