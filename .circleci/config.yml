@@ -26,13 +26,13 @@ jobs:
   build-frontend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./frontend
     steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
       - run:
           name: Build front-end
+          working_directory: ./frontend
           command: |
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
@@ -45,13 +45,13 @@ jobs:
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./frontend
     steps:
       - checkout
       - restore_cache:  
           keys: [frontend-build]
       - run:
           name: Test frontend
+          working_directory: ./frontend
           command: |
             sudo npm install --global jest
             sudo jest
@@ -60,13 +60,13 @@ jobs:
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./frontend
     steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
       - run:
           name: Scan for vulnerabilities for frontend
+          working_directory: ./fontend
           command: |
             npm i
             sudo npm audit fix --audit-level=critical --force
@@ -77,13 +77,13 @@ jobs:
   build-backend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./backend
     steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
       - run:
           name: Back-end build
+          working_directory: ./backend
           command: |
              sudo npm i
              sudo npm install typescript -g
@@ -96,13 +96,13 @@ jobs:
   test-backend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./backend
     steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
       - run:
           name: Test backend
+          working_directory: ./backend
           command: |
             sudo npm install --global jest
             sudo jest --runInBand
@@ -111,13 +111,13 @@ jobs:
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./backend
     steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
       - run:
           name: Scan for vulnerabilities for backend
+          working_directory: ./backend
           command: |
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
@@ -221,13 +221,13 @@ jobs:
   deploy-frontend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./frontend
     steps:
       - checkout
       - restore_cache:  
           keys: [frontend-build]
       - run:
           name: Install AWS CLI dependencies
+          working_directory: ./frontend
           command: |
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -235,6 +235,7 @@ jobs:
             sudo ./aws/install
       - run:
           name: Install dependencies
+          working_directory: ./frontend
           command: |
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
@@ -249,6 +250,7 @@ jobs:
             echo "${API_URL}"
       - run:
           name: Deploy frontend objects
+          working_directory: ./frontend
           command: |
              npm run build
              aws s3 cp ./dist s3://myb27-udapeople-9871051234349703/ 
@@ -259,7 +261,6 @@ jobs:
   deploy-backend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ./backend
     steps:
       - checkout
       - restore_cache:
@@ -271,6 +272,7 @@ jobs:
           at: /tmp/
       - run:
           name: Install AWS CLI dependencies
+          working_directory: ./backend
           command: |
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -278,6 +280,7 @@ jobs:
             sudo ./aws/install
       - run:
           name: Install dependencies
+          working_directory: ./backend
           command: |
             apk add --update ansible curl rsync openssh nodejs npm
             ansible --version
@@ -287,6 +290,7 @@ jobs:
             export ANSIBLE_HOST_KEY_CHECKING=False
       - run:
           name: Deploy backend
+          working_directory: ./backend
           command: |
             ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
