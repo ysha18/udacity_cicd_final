@@ -66,7 +66,7 @@ jobs:
           keys: [frontend-build]
       - run:
           name: Scan for vulnerabilities for frontend
-          working_directory: ./fontend
+          working_directory: ./frontend
           command: |
             npm i
             sudo npm audit fix --audit-level=critical --force
