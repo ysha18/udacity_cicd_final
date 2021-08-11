@@ -193,7 +193,6 @@ jobs:
           keys: [backend-build]
       - run:
           name: Install AWS CLI dependencies
-          working_directory: ./backend
           command: |
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -201,6 +200,7 @@ jobs:
             sudo ./aws/install
       - run:
           name: Run migrations
+          working_directory: ./backend
           command: |
             set -ex
             touch migration-log
@@ -228,7 +228,6 @@ jobs:
           keys: [frontend-build]
       - run:
           name: Install AWS CLI dependencies
-          working_directory: ./frontend
           command: |
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -254,7 +253,7 @@ jobs:
           working_directory: ./frontend
           command: |
              npm run build
-             aws s3 cp ./dist s3://myb40-udapeople-9871051234349703/ 
+             aws s3 cp ./dist s3://myb41-udapeople-9871051234349703/ 
       - notify_on_slack
       # Here's where you will add some code to rollback on failure      
       - destroy_environment
