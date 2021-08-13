@@ -249,6 +249,7 @@ jobs:
           name: Install dependencies
           working_directory: ./frontend
           command: |
+            set -ex
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
             sudo webpack --mode development --progress
@@ -264,10 +265,10 @@ jobs:
           name: Deploy frontend objects
           working_directory: ./frontend
           command: |
+             set -ex
              npm run build
              aws s3 cp ./dist s3://myb46-udapeople-9871051234349703/ 
-      - notify_on_slack
-      # Here's where you will add some code to rollback on failure      
+      - notify_on_slack     
       - destroy_environment
 
   deploy-backend:
@@ -294,6 +295,7 @@ jobs:
           name: Install dependencies
           working_directory: ./backend
           command: |
+            set -ex
             sudo apt install software-properties-common
             sudo add-apt-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible
@@ -304,7 +306,6 @@ jobs:
           command: |
             ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
-      # Here's where you will add some code to rollback on failure  
       - destroy_environment
 
   
