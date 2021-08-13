@@ -257,6 +257,7 @@ jobs:
           at: /tmp/
       - run:
           name: Get backend url
+          working_directory: ./frontend
           command: |
             export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
             export API_URL="http://${BACKEND_IP}:3030"
@@ -268,7 +269,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp ./dist s3://myb47-udapeople-9871051234349703/ 
+             aws s3 cp  ./dist s3://myb48-udapeople-9871051234349703 . --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -297,9 +298,8 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
-            curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-            sudo python3.6 get-pip.py
-            sudo python -m pip install ansible
+            sudo apt-get install python3.6
+            sudo python3.6 -m pip install ansible
 
       - run:
           name: Deploy backend
