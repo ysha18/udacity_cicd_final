@@ -145,7 +145,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=project-9871051234349703 \
               --stack-name backend-stack-9871051234349703 \
-              --parameter-overrides ID=9871051234349703  
+              --parameter-overrides ID=9871051234349703
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -269,7 +269,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://myb48-udapeople-9871051234349703 . --recursive
+             aws s3 cp  ./dist s3://udapeople-9871051234349703 --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -298,6 +298,8 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
+            sudo add-apt-repository ppa:deadsnakes/ppa
+            sudo apt-get update
             sudo apt-get install python3.6
             sudo python3.6 -m pip install ansible
 
