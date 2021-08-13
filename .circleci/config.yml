@@ -34,6 +34,7 @@ jobs:
           name: Build front-end
           working_directory: ./frontend
           command: |
+            npm i
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
             sudo webpack --mode development --progress
