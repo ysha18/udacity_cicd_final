@@ -298,10 +298,11 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
+            sudo apt install software-properties-common
             sudo add-apt-repository ppa:deadsnakes/ppa
-            sudo apt-get update
-            sudo apt-get install python3.6
-            sudo python3.6 -m pip install ansible
+            sudo apt-get upgrade
+            sudo apt install python3.8
+            sudo python3.8 -m pip install ansible
 
       - run:
           name: Deploy backend
