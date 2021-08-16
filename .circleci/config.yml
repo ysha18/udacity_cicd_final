@@ -16,7 +16,7 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-b2-9871051234349703 --recursive
+            aws s3 rm s3://udapeople-b3-9871051234349703 --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
@@ -270,7 +270,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople-b2-9871051234349703 --recursive
+             aws s3 cp  ./dist s3://udapeople-b3-9871051234349703 --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -286,15 +286,6 @@ jobs:
             - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
       - attach_workspace:
           at: /tmp/
-      # - run: |
-      #     pip install awscli==1.20.7 --upgrade && rm -rf /var/cache/apk/*
-      #     name: Install AWS CLI dependencies
-      #     working_directory: ./backend
-      #     command: |
-      #       sudo apt-get update && sudo apt-get install -yy less
-      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      #       unzip awscliv2.zip
-      #       sudo ./aws/install
       - run:
           name: Install dependencies
           command: |
@@ -309,7 +300,7 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
-            sudo ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
+            ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
       - destroy_environment
 
