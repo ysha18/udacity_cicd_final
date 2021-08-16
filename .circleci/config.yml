@@ -16,7 +16,7 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-b1-9871051234349703 --recursive
+            aws s3 rm s3://udapeople-b2-9871051234349703 --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
@@ -270,13 +270,13 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople-b1-9871051234349703 --recursive
+             aws s3 cp  ./dist s3://udapeople-b2-9871051234349703 --recursive
       - notify_on_slack     
       - destroy_environment
 
   deploy-backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - restore_cache:
@@ -286,24 +286,23 @@ jobs:
             - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
       - attach_workspace:
           at: /tmp/
-      - run:
-          name: Install AWS CLI dependencies
-          working_directory: ./backend
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+      # - run: |
+      #     pip install awscli==1.20.7 --upgrade && rm -rf /var/cache/apk/*
+      #     name: Install AWS CLI dependencies
+      #     working_directory: ./backend
+      #     command: |
+      #       sudo apt-get update && sudo apt-get install -yy less
+      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #       unzip awscliv2.zip
+      #       sudo ./aws/install
       - run:
           name: Install dependencies
-          working_directory: ./backend
           command: |
-            set -ex
-            sudo apt install software-properties-common
-            sudo add-apt-repository ppa:fkrull/deadsnakes
-            sudo apt-get upgrade
-            sudo apt install python3.8
-            sudo python3.8 -m pip install ansible
+            apk add --update ansible curl rsync openssh nodejs npm
+            ansible --version
+            pip3 install --upgrade pip
+            pip3 install awscli
+            aws --version 
 
       - run:
           name: Deploy backend
