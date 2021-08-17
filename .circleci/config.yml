@@ -16,7 +16,7 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-9871051234349703 --recursive
+            aws s3 rm s3://udapeople-b-9871051234349703 --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
@@ -192,8 +192,9 @@ jobs:
             apk add --update ansible
       - run:
           name: Configure server
+          working_directory: .circleci/ansibleconfigure-server
           command: |
-            ansible-playbook .circleci/ansible/configure-server/configure-server.yml -i /tmp/inventory.txt
+            ansible-playbook configure-server.yml -i /tmp/inventory.txt
       - notify_on_slack    
       - destroy_environment
 
@@ -270,7 +271,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople-9871051234349703 --recursive
+             aws s3 cp  ./dist s3://udapeople-b-9871051234349703 --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -297,10 +298,10 @@ jobs:
 
       - run:
           name: Deploy backend
-          working_directory: ./backend
+          working_directory: circleci/ansible/deploy-backend
           command: |
             set -ex
-            ansible-playbook .circleci/ansible/deploy-backend/deploy-backend.yml -i /tmp/inventory.txt
+            ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
       - destroy_environment
 
