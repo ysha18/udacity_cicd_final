@@ -1,5 +1,10 @@
+- name: "set environment variables."
+  become: yes
+  command: |
+    pwd
+
 - name: "Copy backend files"
   become: yes
   copy:
-    src: ~/backend/dist
+    src: ./backend/dist
     dest: $HOME
