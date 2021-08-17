@@ -1,10 +1,10 @@
 - name: "set environment variables."
   become: yes
   command: |
-    pwd
+    echo "$playbook_dir"
 
 - name: "Copy backend files"
   become: yes
   copy:
-    src: ./backend/dist
+    src: /root/project/backend/dist
     dest: $HOME
