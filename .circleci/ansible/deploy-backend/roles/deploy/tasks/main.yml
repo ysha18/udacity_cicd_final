@@ -6,5 +6,5 @@
 - name: "Copy backend files"
   become: yes
   copy:
-    src: /root/project/backend/dist
+    src: ../../backend/dist
     dest: $HOME
