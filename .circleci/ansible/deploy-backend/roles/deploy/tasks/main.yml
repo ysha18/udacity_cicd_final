@@ -5,6 +5,6 @@
 
 - name: "Copy backend files"
   become: yes
-  copy:
-    src: ../../backend/dist
+  ansible.builtin.copy:
+    src: /root/project/.circleci/backend/dist/
     dest: $HOME
