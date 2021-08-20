@@ -301,7 +301,7 @@ jobs:
           working_directory: .circleci/ansible/deploy-backend
           command: |
             set -ex
-            ls -l .circleci/backend
+            ls -l ../../backend
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
