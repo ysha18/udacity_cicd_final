@@ -6,5 +6,5 @@
 - name: "Copy backend files"
   become: yes
   ansible.builtin.copy:
-    src: /tmp/dist
+    src: /tmp/backend/dist
     dest: $HOME
