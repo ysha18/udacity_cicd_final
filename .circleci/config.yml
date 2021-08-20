@@ -16,7 +16,7 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-b4-9871051234349703 --recursive
+            aws s3 rm s3://udapeople-b5-9871051234349703 --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
@@ -90,6 +90,10 @@ jobs:
              sudo npm i
              sudo npm install typescript -g
              sudo tsc
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -269,9 +273,9 @@ jobs:
           working_directory: ./frontend
           command: |
              set -ex
-             sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople-b4-9871051234349703 --recursive
+             sudo chmod -R 777 ./dist
+             aws s3 cp  ./dist s3://udapeople-b5-9871051234349703 --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -300,8 +304,8 @@ jobs:
           name: Deploy backend
           working_directory: .circleci/ansible/deploy-backend
           command: |
+            ls /tmp/dist
             set -ex
-            chmod -R 777 ./dist
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
       - notify_on_slack
