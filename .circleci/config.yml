@@ -16,7 +16,7 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople2-9871051234349703 --recursive
+            aws s3 rm s3://udapeople3-9871051234349703 --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
@@ -74,6 +74,48 @@ jobs:
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
 
+  deploy-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:  
+          keys: [frontend-build]
+      - run:
+          name: Install AWS CLI dependencies
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Install dependencies
+          working_directory: ./frontend
+          command: |
+            set -ex
+            sudo npm install --global webpack
+            sudo npm install --global webpack-cli
+            sudo webpack --mode development --progress
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: Get backend url
+          working_directory: ./frontend
+          command: |
+            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Deploy frontend objects
+          working_directory: ./frontend
+          command: |
+             set -ex
+             sudo chmod -R 777 ./dist
+             npm run build
+             aws s3 cp  ./dist s3://udapeople3-9871051234349703 --recursive
+      - notify_on_slack     
+      - destroy_environment
+
 # BACKEND
 
   build-backend:
@@ -128,6 +170,37 @@ jobs:
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
 
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - add_ssh_keys:
+          fingerprints:
+            - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: Install dependencies
+          command: |
+            set -ex
+            apk add --update ansible curl nodejs npm
+            pip3 install --upgrade pip
+            pip3 install awscli
+            aws --version
+
+      - run:
+          name: Deploy backend
+          working_directory: .circleci/ansible/deploy-backend
+          command: |
+            set -ex
+            export ANSIBLE_HOST_KEY_CHECKING=False
+            ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
+      - notify_on_slack
+      - destroy_environment
+
 # INFRA
 
   deploy-infrastructure:
@@ -145,7 +218,6 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists
           command: |
-            mkdir /tmp/workspace
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=project-9871051234349703 \
@@ -224,7 +296,6 @@ jobs:
             touch migration-log
             echo ${CIRCLE_WORKFLOW_ID}
             npm run migrations > migration-log
-            cat migration-log
 
       - run:
           name: Send migration results to memstash
@@ -236,80 +307,6 @@ jobs:
             fi
       - notify_on_slack
       - destroy_environment
-
-  deploy-frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:  
-          keys: [frontend-build]
-      - run:
-          name: Install AWS CLI dependencies
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-      - run:
-          name: Install dependencies
-          working_directory: ./frontend
-          command: |
-            set -ex
-            sudo npm install --global webpack
-            sudo npm install --global webpack-cli
-            sudo webpack --mode development --progress
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Get backend url
-          working_directory: ./frontend
-          command: |
-            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
-      - run:
-          name: Deploy frontend objects
-          working_directory: ./frontend
-          command: |
-             set -ex
-             sudo chmod -R 777 ./dist
-             npm run build
-             aws s3 cp  ./dist s3://udapeople2-9871051234349703 --recursive
-      - notify_on_slack     
-      - destroy_environment
-
-  deploy-backend:
-    docker:
-      - image: python:3.7-alpine3.11
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - add_ssh_keys:
-          fingerprints:
-            - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible curl rsync openssh nodejs npm
-            ansible --version
-            pip3 install --upgrade pip
-            pip3 install awscli
-            aws --version
-
-      - run:
-          name: Deploy backend
-          working_directory: .circleci/ansible/deploy-backend
-          command: |
-            set -ex
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
-      - notify_on_slack
-      - destroy_environment
-
   
 workflows:
   default:
