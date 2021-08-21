@@ -16,7 +16,7 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople1-9871051234349703 --recursive
+            aws s3 rm s3://udapeople2-9871051234349703 --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
             aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
 
@@ -273,9 +273,9 @@ jobs:
           working_directory: ./frontend
           command: |
              set -ex
-             npm run build
              sudo chmod -R 777 ./dist
-             aws s3 cp  ./dist s3://udapeople1-9871051234349703 --recursive
+             npm run build
+             aws s3 cp  ./dist s3://udapeople2-9871051234349703 --recursive
       - notify_on_slack     
       - destroy_environment
 
