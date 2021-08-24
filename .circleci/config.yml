@@ -16,9 +16,27 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-9871051234349703 --recursive
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
-            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+            set -ex
+            aws s3 rm s3://udapeople1-${HY_ID} --recursive
+            aws cloudformation delete-stack --stack-name frontend-stack-${HY_ID}
+            aws cloudformation delete-stack --stack-name backend-stack-${HY_ID}
+
+  revert_migrations:
+    steps:
+      - run:
+          name: Revert migration
+          when: on_fail
+          working_directory: ./frontend
+          command: |
+            set -ex
+            export IS_MIGR_SUCCESS=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            if $IS_MIGR_SUCCESS == '1'
+            then
+              echo "Reverting migration"
+              npm run migrations:revert
+            fi
+
+
 
 jobs:
 
@@ -112,7 +130,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople-9871051234349703 --recursive
+             aws s3 cp  ./dist s3://udapeople1-${HY_ID} --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -220,17 +238,17 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=project-9871051234349703 \
-              --stack-name backend-stack-9871051234349703 \
-              --parameter-overrides ID=9871051234349703
+              --tags project=project-${HY_ID} \
+              --stack-name backend-stack-${HY_ID} \
+              --parameter-overrides ID=${HY_ID}
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=project-9871051234349703 \
-              --stack-name frontend-stack-9871051234349703 \
-              --parameter-overrides ID=9871051234349703
+              --tags project=project-${HY_ID} \
+              --stack-name frontend-stack-${HY_ID} \
+              --parameter-overrides ID=${HY_ID}
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -248,7 +266,6 @@ jobs:
       - notify_on_slack
       - destroy_environment
 
-# DEPLOY PHASE
 
   configure-infrastructure:
     docker:
@@ -273,6 +290,9 @@ jobs:
             ansible-playbook configure-server.yml -i /tmp/inventory.txt
       - notify_on_slack    
       - destroy_environment
+
+
+# MIGRATIONS
 
   run-migrations:
     docker:
@@ -307,6 +327,48 @@ jobs:
             fi
       - notify_on_slack
       - destroy_environment
+
+
+# SMOKE TEST
+
+  smoke-test:
+    docker:
+      - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            apt-get update
+            apt-get install curl
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Backend smoke test.
+          command: |
+            curl ${API_URL}/api/status
+      - run:
+          name: Frontend smoke test.
+          command: |
+            export URL="http://udapeople1-${HY_ID}.s3-website-us-east-2.amazonaws.com"
+            if curl -s ${URL} | grep "Welcome"
+            then
+            return 1
+            else
+            return 0
+            fi
+
+      - notify_on_slack
+      - destroy_environment
+      - revert_migrations
   
 workflows:
   default:
@@ -334,8 +396,8 @@ workflows:
           requires: [run-migrations]
       - deploy-frontend:
           requires: [deploy-backend]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
