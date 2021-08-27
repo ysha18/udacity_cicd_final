@@ -17,7 +17,7 @@ commands:
           when: on_fail
           command: |
             set -ex
-            aws s3 rm s3://udapeople1-${HY_ID} --recursive
+            aws s3 rm s3://udapeople-${HY_ID} --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-${HY_ID}
             aws cloudformation delete-stack --stack-name backend-stack-${HY_ID}
 
@@ -130,7 +130,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople1-${HY_ID} --recursive
+             aws s3 cp  ./dist s3://udapeople-${HY_ID} --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -343,7 +343,6 @@ jobs:
           name: Install dependencies
           command: |
             set -ex
-            sudo apt-get update && sudo apt-get install -yy less
             sudo apt-get update
             sudo apt-get install curl
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -362,7 +361,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            export URL="http://udapeople1-${HY_ID}.s3-website-us-east-2.amazonaws.com"
+            export URL="http://udapeople-${HY_ID}.s3-website-us-east-2.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
             return 1
