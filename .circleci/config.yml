@@ -29,7 +29,7 @@ commands:
           working_directory: ./frontend
           command: |
             set -ex
-            export IS_MIGR_SUCCESS=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            export IS_MIGR_SUCCESS=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/migration)
             if $IS_MIGR_SUCCESS == '1'
             then
               echo "Reverting migration"
@@ -317,7 +317,6 @@ jobs:
           command: |
             set -ex
             touch migration-log
-            echo ${CIRCLE_WORKFLOW_ID}
             npm run migrations > migration-log
 
       - run:
@@ -326,7 +325,8 @@ jobs:
             set -ex
             if grep -q "has been executed successfully" migration-log
             then
-              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              echo "sending migration results to memstash"
+              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration
             fi
       - notify_on_slack
       - destroy_environment
@@ -342,9 +342,10 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            set -ex
             sudo apt-get update && sudo apt-get install -yy less
-            apt-get update
-            apt-get install curl
+            sudo apt-get update
+            sudo apt-get install curl
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
