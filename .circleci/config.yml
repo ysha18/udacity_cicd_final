@@ -207,7 +207,6 @@ jobs:
             apk add --update ansible curl nodejs npm
             pip3 install --upgrade pip
             pip3 install awscli
-            aws --version
 
       - run:
           name: Deploy backend
@@ -280,9 +279,13 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            set -ex
             apk update
             apk upgrade
-            apk add --update ansible
+            apk add --update ansible curl nodejs npm
+            pip3 install --upgrade pip
+            pip3 install awscli
+            
       - run:
           name: Configure server
           working_directory: .circleci/ansible/configure-server
