@@ -278,8 +278,7 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - deploy-infrastructure
           # filters:
           #   branches:
           #     only: [test-feature-branch]
