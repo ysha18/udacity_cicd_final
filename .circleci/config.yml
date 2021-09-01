@@ -42,59 +42,6 @@ jobs:
 
  # FRONTEND    
 
-  build-frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Build front-end
-          working_directory: ./frontend
-          command: |
-            set -ex
-            npm i
-            sudo npm install --global webpack
-            sudo npm install --global webpack-cli
-            sudo webpack --mode development --progress
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build     
-      - notify_on_slack
-
-  test-frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:  
-          keys: [frontend-build]
-      - run:
-          name: Test frontend
-          working_directory: ./frontend
-          command: |
-            set -ex
-            sudo npm install --global jest
-            sudo jest
-      - notify_on_slack
-
-  scan-frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Scan for vulnerabilities for frontend
-          working_directory: ./frontend
-          command: |
-            set -ex
-            npm i
-            sudo npm audit fix --audit-level=critical --force
-      - notify_on_slack
-
   deploy-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -140,62 +87,6 @@ jobs:
       - destroy_environment
 
 # BACKEND
-
-  build-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Back-end build
-          working_directory: ./backend
-          command: |
-             set -ex
-             sudo npm i
-             sudo npm install typescript -g
-             sudo tsc
-      - persist_to_workspace:
-          root: ./backend
-          paths:
-            - dist
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
-      - notify_on_slack
-
-  test-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Test backend
-          working_directory: ./backend
-          command: |
-            set -ex
-            sudo npm install --global jest
-            sudo jest --runInBand
-      - notify_on_slack
-
-  scan-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Scan for vulnerabilities for backend
-          working_directory: ./backend
-          command: |
-            set -ex
-            sudo npm audit fix --audit-level=critical --force
-      - notify_on_slack
-
   deploy-backend:
     docker:
       - image: python:3.7-alpine3.11
@@ -380,23 +271,13 @@ jobs:
             return 0
             fi
 
-      - notify_on_slack
-      - destroy_environment
-      - revert_migrations
+      # - notify_on_slack
+      # - destroy_environment
+      # - revert_migrations
   
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           # filters:
