@@ -366,8 +366,7 @@ jobs:
           command: |
             set -ex
             export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
+            export API_URL="https://${BACKEND_IP}:3030"
             curl ${API_URL}/api/status
       - run:
           name: Frontend smoke test.
