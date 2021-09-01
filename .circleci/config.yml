@@ -53,6 +53,7 @@ jobs:
           name: Build front-end
           working_directory: ./frontend
           command: |
+            set -ex
             npm i
             sudo npm install --global webpack
             sudo npm install --global webpack-cli
@@ -73,6 +74,7 @@ jobs:
           name: Test frontend
           working_directory: ./frontend
           command: |
+            set -ex
             sudo npm install --global jest
             sudo jest
       - notify_on_slack
@@ -88,6 +90,7 @@ jobs:
           name: Scan for vulnerabilities for frontend
           working_directory: ./frontend
           command: |
+            set -ex
             npm i
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
@@ -102,6 +105,7 @@ jobs:
       - run:
           name: Install AWS CLI dependencies
           command: |
+            set -ex
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
@@ -120,6 +124,7 @@ jobs:
           name: Get backend url
           working_directory: ./frontend
           command: |
+            set -ex
             export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
@@ -147,6 +152,7 @@ jobs:
           name: Back-end build
           working_directory: ./backend
           command: |
+             set -ex
              sudo npm i
              sudo npm install typescript -g
              sudo tsc
@@ -170,6 +176,7 @@ jobs:
           name: Test backend
           working_directory: ./backend
           command: |
+            set -ex
             sudo npm install --global jest
             sudo jest --runInBand
       - notify_on_slack
@@ -185,6 +192,7 @@ jobs:
           name: Scan for vulnerabilities for backend
           working_directory: ./backend
           command: |
+            set -ex
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
 
@@ -228,6 +236,7 @@ jobs:
       - run:
           name: Install AWS CLI dependencies
           command: |
+            set -ex
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
@@ -235,6 +244,7 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists
           command: |
+            set -ex
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=project-${HY_ID} \
@@ -243,6 +253,7 @@ jobs:
       - run:
           name: Ensure front-end infrastructure exist
           command: |
+            set -ex
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=project-${HY_ID} \
@@ -251,6 +262,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            set -ex
             backend_ip=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
@@ -307,6 +319,7 @@ jobs:
       - run:
           name: Install AWS CLI dependencies
           command: |
+            set -ex
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
@@ -349,18 +362,17 @@ jobs:
             unzip awscliv2.zip
             sudo ./aws/install
       - run:
-          name: Get backend url
+          name: Get backend url and smoke test
           command: |
+            set -ex
             export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-      - run:
-          name: Backend smoke test.
-          command: |
             curl ${API_URL}/api/status
       - run:
           name: Frontend smoke test.
           command: |
+            set -ex
             export URL="http://udapeople-${HY_ID}.s3-website-us-east-2.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
