@@ -380,9 +380,9 @@ jobs:
             return 0
             fi
 
-      - notify_on_slack
-      - destroy_environment
-      - revert_migrations
+      # - notify_on_slack
+      # - destroy_environment
+      # - revert_migrations
   
 workflows:
   default:
