@@ -35,8 +35,4 @@
     production: yes
     state: present
 
-- name: "run app using pm2"
-  become: yes
-  command: "sudo env PATH=$PATH:/usr/local/bin pm2 startup"
-
 

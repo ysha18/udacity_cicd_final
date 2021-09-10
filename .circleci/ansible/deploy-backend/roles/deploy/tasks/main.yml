@@ -1,5 +1,9 @@
 - name: "Copy backend files"
-  become: yes
   ansible.builtin.copy:
-    src: /tmp/dist
+    src: /tmp/dist/
     dest: $HOME
+
+- name: "run app using pm2"
+  command: |
+    set -ex
+    sudo pm2 start main.js
