@@ -17,9 +17,9 @@ commands:
           when: on_fail
           command: |
             set -ex
-            aws s3 rm s3://udapeople-${HY_ID} --recursive
-            aws cloudformation delete-stack --stack-name frontend-stack-${HY_ID}
-            aws cloudformation delete-stack --stack-name backend-stack-${HY_ID}
+            aws s3 rm s3://udapeople-${WORKFLOW_ID} --recursive
+            aws cloudformation delete-stack --stack-name frontend-stack-${WORKFLOW_ID}
+            aws cloudformation delete-stack --stack-name backend-stack-${WORKFLOW_ID}
 
   revert_migrations:
     steps:
@@ -135,7 +135,7 @@ jobs:
              set -ex
              sudo chmod -R 777 ./dist
              npm run build
-             aws s3 cp  ./dist s3://udapeople-${HY_ID} --recursive
+             aws s3 cp  ./dist s3://udapeople-${WORKFLOW_ID} --recursive
       - notify_on_slack     
       - destroy_environment
 
@@ -223,8 +223,8 @@ jobs:
             set -ex
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
-      - notify_on_slack
-      - destroy_environment
+      # - notify_on_slack
+      # - destroy_environment
 
 # INFRA
 
@@ -247,18 +247,18 @@ jobs:
             set -ex
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=project-${HY_ID} \
-              --stack-name backend-stack-${HY_ID} \
-              --parameter-overrides ID=${HY_ID}
+              --tags project=project-${WORKFLOW_ID} \
+              --stack-name backend-stack-${WORKFLOW_ID} \
+              --parameter-overrides ID=${WORKFLOW_ID}
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             set -ex
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=project-${HY_ID} \
-              --stack-name frontend-stack-${HY_ID} \
-              --parameter-overrides ID=${HY_ID}
+              --tags project=project-${WORKFLOW_ID} \
+              --stack-name frontend-stack-${WORKFLOW_ID} \
+              --parameter-overrides ID=${WORKFLOW_ID}
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -372,7 +372,7 @@ jobs:
           name: Frontend smoke test.
           command: |
             set -ex
-            export URL="http://udapeople-${HY_ID}.s3-website-us-east-2.amazonaws.com"
+            export URL="http://udapeople-${WORKFLOW_ID}.s3-website-us-east-2.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
             return 1
