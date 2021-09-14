@@ -6,4 +6,4 @@
 - name: "run app using pm2"
   command: |
     set -ex
-    sudo pm2 start main.js
+    pm2 start run start:prod

@@ -154,8 +154,7 @@ jobs:
           command: |
              set -ex
              sudo npm i
-             sudo npm install typescript -g
-             sudo tsc
+             sudo npm run build
       - persist_to_workspace:
           root: ./backend
           paths:
