@@ -303,8 +303,8 @@ jobs:
           working_directory: .circleci/ansible/configure-server
           command: |
             ansible-playbook configure-server.yml -i /tmp/inventory.txt
-      - notify_on_slack    
-      - destroy_environment
+      # - notify_on_slack    
+      # - destroy_environment
 
 
 # MIGRATIONS
