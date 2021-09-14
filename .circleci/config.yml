@@ -155,6 +155,7 @@ jobs:
              set -ex
              sudo npm i
              sudo npm run build
+             cp package.json dist/
       - persist_to_workspace:
           root: ./backend
           paths:
