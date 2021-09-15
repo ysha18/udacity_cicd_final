@@ -10,5 +10,4 @@
 
 - name: "run app using pm2"
   command: |
-    set -ex
     pm2 start main.js
