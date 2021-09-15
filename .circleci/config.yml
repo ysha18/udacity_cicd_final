@@ -55,9 +55,7 @@ jobs:
           command: |
             set -ex
             npm i
-            sudo npm install --global webpack
-            sudo npm install --global webpack-cli
-            sudo webpack --mode development --progress
+            sudo npm run build
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build     
@@ -75,8 +73,7 @@ jobs:
           working_directory: ./frontend
           command: |
             set -ex
-            sudo npm install --global jest
-            sudo jest
+            sudo npm run test
       - notify_on_slack
 
   scan-frontend:
@@ -115,9 +112,7 @@ jobs:
           working_directory: ./frontend
           command: |
             set -ex
-            sudo npm install --global webpack
-            sudo npm install --global webpack-cli
-            sudo webpack --mode development --progress
+            npm i
       - attach_workspace:
           at: /tmp/
       - run:
@@ -177,8 +172,8 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
-            sudo npm install --global jest
-            sudo jest --runInBand
+            npm i
+            npm run test
       - notify_on_slack
 
   scan-backend:
