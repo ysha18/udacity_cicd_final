@@ -320,7 +320,7 @@ jobs:
             unzip awscliv2.zip
             sudo ./aws/install
       - run:
-          name: Run migrations
+          name: Run migrations and send results to memstash
           working_directory: ./backend
           command: |
             set -ex
@@ -328,10 +328,6 @@ jobs:
             ls
             npm run migrations > migration-log
             cat migration-log
-
-      - run:
-          name: Send migration results to memstash
-          command: |
             set -ex
             if grep -q "has been executed successfully" migration-log
             then
@@ -403,8 +399,8 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-      - deploy-backend:
-          requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
       # - deploy-frontend:
       #     requires: [deploy-backend]
       # - smoke-test:
