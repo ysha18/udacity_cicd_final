@@ -325,7 +325,9 @@ jobs:
           command: |
             set -ex
             touch migration-log
+            ls
             npm run migrations > migration-log
+            cat migration-log
 
       - run:
           name: Send migration results to memstash
@@ -403,10 +405,10 @@ workflows:
           requires: [configure-infrastructure]
       - deploy-backend:
           requires: [run-migrations]
-      - deploy-frontend:
-          requires: [deploy-backend]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      # - deploy-frontend:
+      #     requires: [deploy-backend]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
