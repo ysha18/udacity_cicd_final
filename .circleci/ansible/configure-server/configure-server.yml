@@ -28,7 +28,6 @@
     - configuration-server
 
   environment:
-    ENVIRONMENT: production
     TYPEORM_CONNECTION: postgres
     TYPEORM_ENTITIES: ./src/modules/domain/**/*.entity.ts
     TYPEORM_HOST: udapeople-prod.c5vtgmprr1t6.us-east-2.rds.amazonaws.com
