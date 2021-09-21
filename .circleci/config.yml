@@ -324,8 +324,6 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
-            touch migration-log
-            ls
             npm run migrations >> migration-log.txt
             cat migration-log.txt
             set -ex
