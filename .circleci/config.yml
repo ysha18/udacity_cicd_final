@@ -30,7 +30,7 @@ commands:
           command: |
             set -ex
             export IS_MIGR_SUCCESS=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/migration)
-            if $IS_MIGR_SUCCESS == '1'
+            if $IS_MIGR_SUCCESS == 'success'
             then
               echo "Reverting migration"
               npm run migrations:revert
@@ -326,13 +326,15 @@ jobs:
             set -ex
             touch migration-log
             ls
-            npm run migrations > migration-log
-            cat migration-log
+            npm run migrations >> migration-log.txt
+            cat migration-log.txt
             set -ex
-            if grep -q "has been executed successfully" migration-log
+            if grep -i "has been executed successfully" migration-log.txt
             then
               echo "sending migration results to memstash"
-              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration
+              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "success" https://api.memstash.io/values/migration
+            else
+              echo "migration not successful"
             fi
       - notify_on_slack
       - destroy_environment
