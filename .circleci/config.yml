@@ -225,7 +225,7 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: cimg/node:16.6.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - run:
@@ -306,7 +306,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: cimg/node:16.6.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -334,9 +334,8 @@ jobs:
             export TYPEORM_MIGRATIONS=./src/migrations/*.ts
             export TYPEORM_MIGRATIONS_DIR=./src/migrationsexport
             env
-            npm run migrations >> migration-log.txt
+            npm run migrations > migration-log.txt
             cat migration-log.txt
-            set -ex
             if grep -i "has been executed successfully" migration-log.txt
             then
               echo "sending migration results to memstash"
