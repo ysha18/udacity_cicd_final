@@ -3,12 +3,8 @@
     src: /tmp/dist/
     dest: $HOME
 
-- name: Install Node Modules
-  command: |
-    npm i
-    npm run build
-
 - name: "run app using pm2"
   command: |
     npm i
+    npm run build
     pm2 start main.js
