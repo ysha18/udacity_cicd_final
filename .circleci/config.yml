@@ -324,9 +324,7 @@ jobs:
           working_directory: ./backend
           command: |
             set -ex
-            env
             npm run migrations > migration-log.txt
-            cat migration-log.txt
             if grep -i "has been executed successfully" migration-log.txt
             then
               echo "sending migration results to memstash"

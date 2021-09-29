@@ -13,6 +13,8 @@
 
 - name: "run app using pm2"
   command: |
+    npm install -g n 
     npm i
     npm run build
+    pm2 start npm --name backend -- run start
     pm2 start main.js
