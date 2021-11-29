@@ -17,9 +17,9 @@ commands:
           when: on_fail
           command: |
             set -ex
-            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID} --recursive
-            aws cloudformation delete-stack --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID}
-            aws cloudformation delete-stack --stack-name backend-stack-${CIRCLE_WORKFLOW_ID}
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws cloudformation delete-stack --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name backend-stack-${CIRCLE_WORKFLOW_ID:0:7}
 
   revert_migrations:
     steps:
@@ -130,7 +130,7 @@ jobs:
              set -ex
              npm run build
              sudo chmod -R 777 ./dist
-             aws s3 cp  ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID} --recursive
+             aws s3 cp  ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       # - notify_on_slack     
       # - destroy_environment
 
@@ -242,18 +242,18 @@ jobs:
             set -ex
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=project-${CIRCLE_WORKFLOW_ID} \
-              --stack-name backend-stack-${CIRCLE_WORKFLOW_ID} \
-              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}
+              --tags project=project-${CIRCLE_WORKFLOW_ID:0:7} \
+              --stack-name backend-stack-${CIRCLE_WORKFLOW_ID:0:7} \
+              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             set -ex
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=project-${CIRCLE_WORKFLOW_ID} \
-              --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID} \
-              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}
+              --tags project=project-${CIRCLE_WORKFLOW_ID:0:7} \
+              --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID:0:7} \
+              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -363,7 +363,7 @@ jobs:
           name: Frontend smoke test.
           command: |
             set -ex
-            export URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-2.amazonaws.com"
+            export URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-2.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
             return 1
@@ -388,21 +388,21 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     # filters:
-      #     #   branches:
-      #     #     only: [test-feature-branch]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - deploy-frontend:
-      #     requires: [deploy-backend]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # filters:
+          #   branches:
+          #     only: [test-feature-branch]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-backend:
+          requires: [run-migrations]
+      - deploy-frontend:
+          requires: [deploy-backend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
