@@ -16,9 +16,27 @@ commands:
           name: Destroy env
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-9871051234349703 --recursive
-            aws cloudformation delete-stack --stack-name frontend-stack-9871051234349703
-            aws cloudformation delete-stack --stack-name backend-stack-9871051234349703
+            set -ex
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID} --recursive
+            aws cloudformation delete-stack --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID}
+            aws cloudformation delete-stack --stack-name backend-stack-${CIRCLE_WORKFLOW_ID}
+
+  revert_migrations:
+    steps:
+      - run:
+          name: Revert migration
+          when: on_fail
+          working_directory: ./frontend
+          command: |
+            set -ex
+            export IS_MIGR_SUCCESS=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/migration)
+            if $IS_MIGR_SUCCESS == 'success'
+            then
+              echo "Reverting migration"
+              npm run migrations:revert
+            fi
+
+
 
 jobs:
 
@@ -35,8 +53,9 @@ jobs:
           name: Build front-end
           working_directory: ./frontend
           command: |
+            set -ex
             npm i
-            npm run build
+            sudo npm run build
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build     
@@ -53,7 +72,8 @@ jobs:
           name: Test frontend
           working_directory: ./frontend
           command: |
-            npm run test
+            set -ex
+            sudo npm run test
       - notify_on_slack
 
   scan-frontend:
@@ -67,9 +87,52 @@ jobs:
           name: Scan for vulnerabilities for frontend
           working_directory: ./frontend
           command: |
+            set -ex
             npm i
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
+
+  deploy-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:  
+          keys: [frontend-build]
+      - run:
+          name: Install AWS CLI dependencies
+          command: |
+            set -ex
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Install dependencies
+          working_directory: ./frontend
+          command: |
+            set -ex
+            npm i
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: Get backend url
+          working_directory: ./frontend
+          command: |
+            set -ex
+            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Deploy frontend objects
+          working_directory: ./frontend
+          command: |
+             set -ex
+             npm run build
+             sudo chmod -R 777 ./dist
+             aws s3 cp  ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID} --recursive
+      # - notify_on_slack     
+      # - destroy_environment
 
 # BACKEND
 
@@ -84,8 +147,14 @@ jobs:
           name: Back-end build
           working_directory: ./backend
           command: |
+             set -ex
              sudo npm i
              sudo npm run build
+             sudo cp package.json dist/
+      - persist_to_workspace:
+          root: ./backend
+          paths:
+            - dist
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -102,7 +171,9 @@ jobs:
           name: Test backend
           working_directory: ./backend
           command: |
-            sudo npm run test
+            set -ex
+            npm i
+            npm run test
       - notify_on_slack
 
   scan-backend:
@@ -116,159 +187,9 @@ jobs:
           name: Scan for vulnerabilities for backend
           working_directory: ./backend
           command: |
+            set -ex
             sudo npm audit fix --audit-level=critical --force
       - notify_on_slack
-
-# INFRA
-
-  deploy-infrastructure:
-    docker:
-      - image: cimg/node:16.6.0
-    steps:
-      - checkout
-      - run:
-          name: Install AWS CLI dependencies
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-      - run:
-          name: Ensure back-end infrastructure exists
-          command: |
-            mkdir /tmp/workspace
-            aws cloudformation deploy \
-              --template-file .circleci/files/backend.yml \
-              --tags project=project-9871051234349703 \
-              --stack-name backend-stack-9871051234349703 \
-              --parameter-overrides ID=9871051234349703
-      - run:
-          name: Ensure front-end infrastructure exist
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/frontend.yml \
-              --tags project=project-9871051234349703 \
-              --stack-name frontend-stack-9871051234349703 \
-              --parameter-overrides ID=9871051234349703
-      - run:
-          name: Add back-end ip to ansible inventory
-          command: |
-            backend_ip=$(aws ec2 describe-instances \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)
-
-            echo "$backend_ip" >> .circleci/ansible/inventory.txt
-
-            curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "$backend_ip" https://api.memstash.io/values/backend_ip
-      - persist_to_workspace:
-          root: .circleci/ansible/
-          paths:
-            - inventory.txt
-      - notify_on_slack
-      - destroy_environment
-
-# DEPLOY PHASE
-
-  configure-infrastructure:
-    docker:
-      - image: python:3.7-alpine3.11
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Install dependencies
-          command: |
-            apk update
-            apk upgrade
-            apk add --update ansible
-      - run:
-          name: Configure server
-          working_directory: .circleci/ansible/configure-server
-          command: |
-            ansible-playbook configure-server.yml -i /tmp/inventory.txt
-      - notify_on_slack    
-      - destroy_environment
-
-  run-migrations:
-    docker:
-      - image: cimg/node:16.6.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Install AWS CLI dependencies
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-      - run:
-          name: Run migrations
-          working_directory: ./backend
-          command: |
-            set -ex
-            touch migration-log
-            echo ${CIRCLE_WORKFLOW_ID}
-            npm run migrations > migration-log
-            cat migration-log
-
-      - run:
-          name: Send migration results to memstash
-          command: |
-            set -ex
-            if grep -q "has been executed successfully" migration-log
-            then
-              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
-            fi
-      - notify_on_slack
-      - destroy_environment
-
-  deploy-frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:  
-          keys: [frontend-build]
-      - run:
-          name: Install AWS CLI dependencies
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-      - run:
-          name: Install dependencies
-          working_directory: ./frontend
-          command: |
-            set -ex
-            sudo npm install --global webpack
-            sudo npm install --global webpack-cli
-            sudo webpack --mode development --progress
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Get backend url
-          working_directory: ./frontend
-          command: |
-            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
-      - run:
-          name: Deploy frontend objects
-          working_directory: ./frontend
-          command: |
-             set -ex
-             sudo chmod -R 777 ./dist
-             npm run build
-             aws s3 cp  ./dist s3://udapeople-9871051234349703 --recursive
-      - notify_on_slack     
-      - destroy_environment
 
   deploy-backend:
     docker:
@@ -285,23 +206,174 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible curl rsync openssh nodejs npm
-            ansible --version
+            set -ex
+            apk add --update ansible curl nodejs npm
             pip3 install --upgrade pip
             pip3 install awscli
-            aws --version
 
       - run:
           name: Deploy backend
           working_directory: .circleci/ansible/deploy-backend
           command: |
             set -ex
-            ls -l .circleci/backend
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook deploy-backend.yml -i /tmp/inventory.txt
+      # - notify_on_slack
+      # - destroy_environment
+
+# INFRA
+
+  deploy-infrastructure:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: Install AWS CLI dependencies
+          command: |
+            set -ex
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            set -ex
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=project-${CIRCLE_WORKFLOW_ID} \
+              --stack-name backend-stack-${CIRCLE_WORKFLOW_ID} \
+              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            set -ex
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=project-${CIRCLE_WORKFLOW_ID} \
+              --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID} \
+              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            set -ex
+            backend_ip=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+
+            echo "$backend_ip" >> .circleci/ansible/inventory.txt
+
+            curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "$backend_ip" https://api.memstash.io/values/backend_ip
+      - persist_to_workspace:
+          root: .circleci/ansible/
+          paths:
+            - inventory.txt
       - notify_on_slack
       - destroy_environment
 
+
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "0c:c8:86:0a:a8:63:2c:f2:29:72:bd:69:b4:7e:29:3a"
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: Install dependencies
+          command: |
+            set -ex
+            apk update
+            apk upgrade
+            apk add --update ansible curl nodejs npm
+            pip3 install --upgrade pip
+            pip3 install awscli
+            
+      - run:
+          name: Configure server
+          working_directory: .circleci/ansible/configure-server
+          command: |
+            ansible-playbook configure-server.yml -i /tmp/inventory.txt
+      # - notify_on_slack    
+      # - destroy_environment
+
+
+# MIGRATIONS
+
+  run-migrations:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Install AWS CLI dependencies
+          command: |
+            set -ex
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Run migrations and send results to memstash
+          working_directory: ./backend
+          command: |
+            set -ex
+            npm run migrations > migration-log.txt
+            if grep -i "has been executed successfully" migration-log.txt
+            then
+              echo "sending migration results to memstash"
+              curl -H "Content-Type: text/plain" -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request PUT --data "success" https://api.memstash.io/values/migration
+            else
+              echo "migration not successful"
+            fi
+      - notify_on_slack
+      - destroy_environment
+
+
+# SMOKE TEST
+
+  smoke-test:
+    docker:
+      - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            set -ex
+            sudo apt-get update
+            sudo apt-get install curl
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Get backend url and smoke test
+          command: |
+            set -ex
+            export BACKEND_IP=$(curl -H "token: 6fba3369-5f48-48a3-af00-1f792a55da7e" --request GET https://api.memstash.io/values/backend_ip)
+            export API_URL="https://${BACKEND_IP}:3030"
+            curl ${API_URL}/api/status
+      - run:
+          name: Frontend smoke test.
+          command: |
+            set -ex
+            export URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-2.amazonaws.com"
+            if curl -s ${URL} | grep "Welcome"
+            then
+            return 1
+            else
+            return 0
+            fi
+
+      # - notify_on_slack
+      # - destroy_environment
+      # - revert_migrations
   
 workflows:
   default:

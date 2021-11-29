@@ -1,7 +1,7 @@
 ---
 
 - name: "configuration play." 
-  hosts: web
+  hosts: all
   user: ubuntu
   gather_facts: false
   vars:
@@ -19,7 +19,9 @@
     - name: "install python for Ansible."
       shell: |
         set -ex
-        sudo apt install python3.8
+        if ! [ -x "$(command -v python3.8)" ]; then
+          sudo apt install python3.8
+        fi
        
 
   roles:
