@@ -14,6 +14,7 @@
 
 - name: "run app using pm2"
   command: |
-    npm i
+    npm install
     npm run build
-    pm2 start main.js
+    pm2 stop default
+    pm2 start npm -- start
