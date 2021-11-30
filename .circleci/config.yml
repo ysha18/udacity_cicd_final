@@ -152,7 +152,7 @@ jobs:
              sudo npm run build
              sudo cp package.json dist/
              sudo cp src/main.ts dist/
-             sudo cp src/main.hrm.ts dist/
+             sudo cp src/main.hmr.ts dist/
       - persist_to_workspace:
           root: ./backend
           paths:
