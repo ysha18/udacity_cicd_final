@@ -99,14 +99,14 @@ jobs:
       - checkout
       - restore_cache:  
           keys: [frontend-build]
-      - run:
-          name: Install AWS CLI dependencies
-          command: |
-            set -ex
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+      # - run:
+      #     name: Install AWS CLI dependencies
+      #     command: |
+      #       set -ex
+      #       sudo apt-get update && sudo apt-get install -yy less
+      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #       unzip awscliv2.zip
+      #       sudo ./aws/install
       - run:
           name: Install dependencies
           working_directory: ./frontend
@@ -151,6 +151,8 @@ jobs:
              sudo npm i
              sudo npm run build
              sudo cp package.json dist/
+             sudo cp main.ts dist/
+             sudo cp main.hrm.ts dist/
       - persist_to_workspace:
           root: ./backend
           paths:
@@ -311,20 +313,21 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
-      - run:
-          name: Install AWS CLI dependencies
-          command: |
-            set -ex
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+      # - run:
+      #     name: Install AWS CLI dependencies
+      #     command: |
+      #       set -ex
+      #       sudo apt-get update && sudo apt-get install -yy less
+      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #       unzip awscliv2.zip
+      #       sudo ./aws/install
       - run:
           name: Run migrations and send results to memstash
           working_directory: ./backend
           command: |
             set -ex
             npm run migrations > migration-log.txt
+            sudo cat migration-log.txt
             if grep -i "has been executed successfully" migration-log.txt
             then
               echo "sending migration results to memstash"
@@ -343,15 +346,15 @@ jobs:
       - image: cimg/base:2021.04
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            set -ex
-            sudo apt-get update
-            sudo apt-get install curl
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       set -ex
+      #       sudo apt-get update
+      #       sudo apt-get install curl
+      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #       unzip awscliv2.zip
+      #       sudo ./aws/install
       - run:
           name: Get backend url and smoke test
           command: |
