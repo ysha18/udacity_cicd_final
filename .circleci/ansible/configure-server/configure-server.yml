@@ -22,7 +22,6 @@
         if ! [ -x "$(command -v python3.8)" ]; then
           sudo apt install python3.8
         fi
-       
 
   roles:
     - configuration-server
