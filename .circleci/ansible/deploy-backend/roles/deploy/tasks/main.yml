@@ -13,17 +13,16 @@
     update_cache: yes
 
 - name: "run app using pm2"
-  environment:
-    TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION')}}"
-    TYPEORM_ENTITIES: "{{ lookup('env', 'TYPEORM_ENTITIES')}}"
-    TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST')}}"
-    TYPEORM_PORT: 5432
-    TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME')}}"
-    TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD')}}"
-    TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE')}}"
-    TYPEORM_MIGRATIONS: "{{ lookup('env', 'TYPEORM_MIGRATIONS')}}"
-    TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
   command: |
+    export TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION')}}"
+    export TYPEORM_ENTITIES: "{{ lookup('env', 'TYPEORM_ENTITIES')}}"
+    export TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST')}}"
+    export TYPEORM_PORT: 5432
+    export TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME')}}"
+    export TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD')}}"
+    export TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE')}}"
+    export TYPEORM_MIGRATIONS: "{{ lookup('env', 'TYPEORM_MIGRATIONS')}}"
+    export TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
     npm install
     npm run build
     pm2 start main.js --update-env
